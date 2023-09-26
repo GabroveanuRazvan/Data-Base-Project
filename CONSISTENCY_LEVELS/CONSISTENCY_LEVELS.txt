@@ -1,0 +1,52 @@
+// id_exemplar=50
+--T1
+	create table exemplar as select * from exemplar_carte;
+
+--DIRTY WRITE
+
+--T1
+	select an_publicatie from exemplar
+	where id_exemplar=50;
+	--2020
+	update exemplar
+	set an_publicatie=an_publicatie+20
+	where id_exemplar=50;
+--T2
+	update exemplar
+	set an_publicatie=an_publicatie+30
+	where id_exemplar=50;
+--T1
+	rollback;
+--T2 
+	select an_publicatie from exemplar
+	where id_exemplar=50;
+	--2050
+	commit;
+--T1	select an_publicatie from exemplar
+	where id_exemplar=50;
+	--2050 , nu se inregistreaza 2070
+
+--LOST UPDATE
+--T1
+	select an_publicatie from exemplar
+	where id_exemplar=50;
+	--2050
+    update exemplar
+	set an_publicatie=an_publicatie+10
+	where id_exemplar=50;
+    
+--T2
+    update exemplar
+	set an_publicatie=an_publicatie+20
+	where id_exemplar=50;
+--T1
+    commit;
+--T2
+    select an_publicatie from exemplar
+	where id_exemplar=50;
+    commit;
+    --2080 , nu se inregistreaza 2060
+--T1
+	select an_publicatie from exemplar
+	where id_exemplar=50;
+    --2080

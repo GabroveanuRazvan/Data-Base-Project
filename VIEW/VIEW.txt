@@ -1,0 +1,14 @@
+--Numarul de autori pentru cartile imprumutate de-a lungul timpului pentru toti cititorii
+CREATE VIEW NUMAR_AUTORI_PER_CITITOR AS select  cititor.nume,info.id_cititor,count(distinct a.id_autor) AS NUMAR_AUTORI
+from autor a
+join carte_autor a_c on a.id_autor=a_c.id_autor
+join carte c on c.id_carte=a_c.id_carte
+join exemplar_carte e_c on e_c.id_carte=c.id_carte
+join info_imprumut info on info.id_exemplar=e_c.id_exemplar,
+(select nume_cititor||' ' || prenume_cititor as nume,id_cititor  from cititor) cititor
+where cititor.id_cititor=info.id_cititor
+group by info.id_cititor,cititor.nume
+WITH READ ONLY;
+
+-- SE poate folosi select
+-- nu se poate folosi update/delete

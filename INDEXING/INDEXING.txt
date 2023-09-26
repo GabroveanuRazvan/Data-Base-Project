@@ -1,0 +1,17 @@
+---Sa se obtina cate imprumuturi s-au realizat pentru cititorul cu id-ul egal cu 3.
+
+CREATE INDEX index_id_cititor ON info_imprumut (id_cititor);
+
+select id_cititor,count(id_cititor)
+from info_imprumut
+where id_cititor=3
+group by id_cititor;
+
+---Sa se afiseze datele exemplarelor de carti cu id-ul intre 5 si 10 publicate intre anii 1980 si 2000
+
+CREATE INDEX index_id_exemplar_an ON exemplar_carte (id_exemplar, an_publicatie);
+
+SELECT *
+    FROM exemplar_carte
+WHERE id_exemplar BETWEEN 5 AND 10
+  AND an_publicatie BETWEEN 1980 AND 2000;

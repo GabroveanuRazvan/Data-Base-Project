@@ -1,0 +1,25 @@
+---Sa se afiseze toate datele despre categoriile pentru cartile  cu id_ul egal cu 1 sau 3
+
+EXPLAIN PLAN FOR
+select distinct(cat.id_categorie),cat.nume_categorie from 
+categorie cat
+join carte_categorie c_c on cat.id_categorie=c_c.id_categorie
+where c_c.id_carte in (1,3)
+order by cat.id_categorie;
+
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+EXPLAIN PLAN FOR
+select cat.id_categorie,cat.nume_categorie from 
+categorie cat
+where cat.id_categorie in(
+    select id_categorie
+    from carte_categorie
+    where id_carte in (1,3)
+)
+order by cat.id_categorie;
+
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+
+

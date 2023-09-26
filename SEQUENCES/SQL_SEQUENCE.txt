@@ -1,0 +1,88 @@
+create sequence SEQ_CARTE
+increment by 1 
+start with 1 
+maxvalue 99999
+minvalue 1 
+nocycle 
+nocache; 
+
+create sequence SEQ_AUTOR
+increment by 1 
+start with 1 
+maxvalue 9999
+minvalue 1 
+nocycle 
+nocache; 
+
+create sequence SEQ_CATEGORIE
+increment by 1 
+start with 1 
+maxvalue 999
+minvalue 1 
+nocycle 
+nocache; 
+
+create sequence SEQ_EXEMPLAR_CARTE
+increment by 1 
+start with 1 
+maxvalue 999999
+minvalue 1 
+nocycle 
+nocache; 
+
+create sequence SEQ_EDITURA
+increment by 1 
+start with 1 
+maxvalue 999
+minvalue 1 
+nocycle 
+nocache; 
+
+create sequence SEQ_IMPRUMUT
+increment by 1 
+start with 1 
+maxvalue 9999999
+minvalue 1 
+nocycle 
+nocache; 
+
+create sequence SEQ_BIBLIOTECAR
+increment by 1 
+start with 1 
+maxvalue 999
+minvalue 1 
+nocycle 
+nocache; 
+
+create sequence SEQ_CITITOR
+increment by 1 
+start with 1 
+maxvalue 999999
+minvalue 1 
+nocycle 
+nocache; 
+
+create sequence SEQ_CARTE_AUTOR
+increment by 1 
+start with 1 
+maxvalue 999999
+minvalue 1 
+nocycle 
+nocache; 
+
+create sequence SEQ_CARTE_CATEGORIE
+increment by 1 
+start with 1 
+maxvalue 999999
+minvalue 1 
+nocycle 
+nocache; 
+
+create sequence SEQ_CARTE_CITITOR
+increment by 1 
+start with 1 
+maxvalue 9999999
+minvalue 1 
+nocycle 
+nocache; 
+

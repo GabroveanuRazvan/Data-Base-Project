@@ -1,0 +1,152 @@
+---EXERCITIUL 14---
+--Numarul de autori pentru cartile imprumutate de-a lungul timpului pentru toti cititorii
+CREATE VIEW NUMAR_AUTORI_PER_CITITOR AS select  cititor.nume,info.id_cititor,count(distinct a.id_autor) AS NUMAR_AUTORI
+from autor a
+join carte_autor a_c on a.id_autor=a_c.id_autor
+join carte c on c.id_carte=a_c.id_carte
+join exemplar_carte e_c on e_c.id_carte=c.id_carte
+join info_imprumut info on info.id_exemplar=e_c.id_exemplar,
+(select nume_cititor||' ' || prenume_cititor as nume,id_cititor  from cititor) cititor
+where cititor.id_cititor=info.id_cititor
+group by info.id_cititor,cititor.nume
+WITH READ ONLY;
+
+-- SE poate folosi select
+-- nu se poate folosi update/delete
+
+---EXERCITIUL 15---
+
+--Sa se afiseze primele 3 cele mai recente imprumuturi
+select * 
+from(select * from info_imprumut order by data_imprumut desc)
+where rownum<=3
+order by data_imprumut desc;
+
+-- Sa se afiseze pentru fiecare exemplar de carte, categoria sa si imprumuturile din care a facut parte. Daca nu a fost imprumutata o sa se afiseze null
+select  ca.id_categorie,info.id_imprumut
+from categorie ca 
+full outer join carte_categorie c_c on c_c.id_categorie=ca.id_categorie
+full outer join carte c on c.id_carte=c_c.id_carte
+full outer join exemplar_carte e_c on e_c.id_carte=c.id_carte
+full outer join info_imprumut info on info.id_exemplar=e_c.id_exemplar;
+
+--Sa se obtina codurile cartilor ce au numai categoriile ce incep cu 'c'
+
+select id_carte
+from carte_categorie
+where id_categorie in 
+(
+    select id_categorie
+    from categorie
+    where lower(nume_categorie) like 'c%'
+)
+group by id_carte
+having count(id_categorie)=
+(
+select count(*)
+from categorie
+where  lower(nume_categorie) like 'c%'
+);
+
+---EXERCITIUL 16---
+
+---Sa se afiseze toate datele despre categoriile pentru cartile  cu id_ul egal cu 1 sau 3
+
+EXPLAIN PLAN FOR
+select distinct(cat.id_categorie),cat.nume_categorie from 
+categorie cat
+join carte_categorie c_c on cat.id_categorie=c_c.id_categorie
+where c_c.id_carte in (1,3)
+order by cat.id_categorie;
+
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+EXPLAIN PLAN FOR
+select cat.id_categorie,cat.nume_categorie from 
+categorie cat
+where cat.id_categorie in(
+    select id_categorie
+    from carte_categorie
+    where id_carte in (1,3)
+)
+order by cat.id_categorie;
+
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+
+
+---EXERCITIUL 18---
+
+// id_exemplar=50
+--T1
+	create table exemplar as select * from exemplar_carte;
+
+--DIRTY WRITE
+
+--T1
+	select an_publicatie from exemplar
+	where id_exemplar=50;
+	--2020
+	update exemplar
+	set an_publicatie=an_publicatie+20
+	where id_exemplar=50;
+--T2
+	update exemplar
+	set an_publicatie=an_publicatie+30
+	where id_exemplar=50;
+--T1
+	rollback;
+--T2 
+	select an_publicatie from exemplar
+	where id_exemplar=50;
+	--2050
+	commit;
+--T1	select an_publicatie from exemplar
+	where id_exemplar=50;
+	--2050 , nu se inregistreaza 2070
+
+--LOST UPDATE
+--T1
+	select an_publicatie from exemplar
+	where id_exemplar=50;
+	--2050
+    update exemplar
+	set an_publicatie=an_publicatie+10
+	where id_exemplar=50;
+    
+--T2
+    update exemplar
+	set an_publicatie=an_publicatie+20
+	where id_exemplar=50;
+--T1
+    commit;
+--T2
+    select an_publicatie from exemplar
+	where id_exemplar=50;
+    commit;
+    --2080 , nu se inregistreaza 2060
+--T1
+	select an_publicatie from exemplar
+	where id_exemplar=50;
+    --2080
+
+---EXERCITIUL 19---
+
+---Sa se obtina cate imprumuturi s-au realizat pentru cititorul cu id-ul egal cu 3.
+
+CREATE INDEX index_id_cititor ON info_imprumut (id_cititor);
+
+select id_cititor,count(id_cititor)
+from info_imprumut
+where id_cititor=3
+group by id_cititor;
+
+---Sa se afiseze datele exemplarelor de carti cu id-ul intre 5 si 10 publicate intre anii 1980 si 2000
+
+CREATE INDEX index_id_exemplar_an ON exemplar_carte (id_exemplar, an_publicatie);
+
+SELECT *
+    FROM exemplar_carte
+WHERE id_exemplar BETWEEN 5 AND 10
+  AND an_publicatie BETWEEN 1980 AND 2000;
+

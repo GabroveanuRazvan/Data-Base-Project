@@ -1,0 +1,125 @@
+--Sa se afiseze titlul tuturor exemplarelor de cărți care au mai mult de 2 categorii și care au fost împrumutate  între 01-02-2023 și 01-04-2023. Dacă cartile nu au fost împrumutate, se va afișa data 01-01-2000
+
+with data_imprumut as (
+select id_imprumut as id
+from info_imprumut
+where data_imprumut between to_date('01-02-2023','DD-MM-YYYY') and to_date('01-04-2023','DD-MM-YYYY')
+)
+select c.titlu_carte,nvl(info.data_imprumut,to_date('01-01-2000','DD-MM-YYYY'))
+from carte c join exemplar_carte e_c on e_c.id_carte=c.id_carte left join info_imprumut  info on info.id_exemplar=e_c.id_exemplar
+where info.id_imprumut in (select id from data_imprumut)
+or info.id_imprumut is null
+and (
+select count(id_carte)
+from carte_categorie
+where id_carte=c.id_carte
+)>2;
+
+
+--Sa se afisese categoriile care corespund unor carti care au mai mult de 5 exemplare in biblioteca
+select id_categorie,nume_categorie
+from categorie
+where id_categorie in 
+(
+    select id_categorie 
+    from carte_categorie
+    where id_carte in
+    (
+        select id_carte 
+        from carte
+        where id_carte in
+        (
+        select e_c.id_carte
+        from exemplar_carte e_c
+        where 
+        (
+        select count( distinct(id_editura))
+        from exemplar_carte
+        where e_c.id_carte=id_carte
+        group by id_carte
+        
+        )>=5 
+        )
+    )
+    
+); 
+--Un  cititor are data de imprumut egala cu cea de retur daca si numai daca acesta studiaza la biblioteca. Sa se afisese id-ul si titlul cartilor folosite in acest scop.
+select distinct(id_carte),titlu_carte
+from carte, 
+(
+    select id_exemplar as id
+    from info_imprumut
+    where to_char(data_imprumut)=to_char(data_retur)
+) data
+where data.id in 
+(
+    select c_e.id_exemplar
+    from exemplar_carte c_e
+    where id_carte=c_e.id_carte
+);
+
+
+--Sa se afiseze id-ul tuturor împrumuturilor realizate in noiembrie, decembrie, ianuarie si februarie sau -1 dacă împrumutul respectiv este realizat in alta luna. Pentru fiecare sa se afiseze mesajul 'iarna' dacă îndeplineste conditia sau 'Nerealizat iarna' în caz contrar. Ordonați descrescător după id-ul afișat.
+select nvl(decode(to_char(data_imprumut,'MM'),'11',id_imprumut,'12',id_imprumut,'01',id_imprumut,'02',id_imprumut,null),-1) as id_imprumut,
+    CASE
+        when nvl(decode(to_char(data_imprumut,'MM'),'11',id_imprumut,'12',id_imprumut,'01',id_imprumut,'02',id_imprumut,null),-1) = -1 then 'Nerealizat iarna'
+        else 'Iarna'
+    end as status
+from info_imprumut
+order by id_imprumut desc;
+
+-- Sa se afiseze date despre bibliotecarii ce au dat în  împrumut între iunie și iulie cărți publicate între anii 1960 1970.
+
+select b.id_bibliotecar,b.nume_bibliotecar||' '||b.prenume_bibliotecar
+from bibliotecar b
+where exists (
+    select 1
+    from info_imprumut info
+    where b.id_bibliotecar=info.id_bibliotecar
+    and EXTRACT(MONTH FROM info.data_imprumut) BETWEEN 5 AND 6
+    and exists (
+        select 1
+        from exemplar_carte e_c
+        where e_c.id_exemplar=info.id_exemplar
+        and e_c.an_publicatie in (1960,1970)
+    )
+);
+
+---Stergeri si update---
+
+Sa se stearga categoriile care nu corespund niciundei carti
+
+delete from categorie c
+where not exists(
+    select 1 
+    from carte_categorie
+    where id_categorie=c.id_categorie
+);
+Sa se stearga bibliotecarii care nu au efectuat niciun imprumut
+delete from bibliotecar b
+where not exists(
+    select 1 
+    from info_imprumut
+    where id_bibliotecar=b.id_bibliotecar
+);
+Sa se stearga editurile care nu corespund niciunui exemplar
+delete from editura e
+where not exists(
+    select 1 
+    from exemplar_carte
+    where id_editura=e.id_editura
+);
+Sa se adauge o luna la data de retur tuturor imprumuturilor cartii 'Lord of the Rings'
+update info_imprumut
+set data_retur=data_retur + interval '1' Month
+where id_exemplar in
+(
+    select id_exemplar 
+    from exemplar_carte
+    where id_carte in 
+    (
+    select id_carte 
+    from carte
+    where lower(titlu_carte) like 'the lord of the rings'
+    )
+);

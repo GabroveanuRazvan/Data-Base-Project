@@ -1,0 +1,31 @@
+--Sa se afiseze primele 3 cele mai recente imprumuturi
+select * 
+from(select * from info_imprumut order by data_imprumut desc)
+where rownum<=3
+order by data_imprumut desc;
+
+-- Sa se afiseze pentru fiecare exemplar de carte, categoria sa si imprumuturile din care a facut parte. Daca nu a fost imprumutata o sa se afiseze null
+select  ca.id_categorie,info.id_imprumut
+from categorie ca 
+full outer join carte_categorie c_c on c_c.id_categorie=ca.id_categorie
+full outer join carte c on c.id_carte=c_c.id_carte
+full outer join exemplar_carte e_c on e_c.id_carte=c.id_carte
+full outer join info_imprumut info on info.id_exemplar=e_c.id_exemplar;
+
+--Sa se obtina codurile cartilor ce au numai categoriile ce incep cu 'c'
+
+select id_carte
+from carte_categorie
+where id_categorie in 
+(
+    select id_categorie
+    from categorie
+    where lower(nume_categorie) like 'c%'
+)
+group by id_carte
+having count(id_categorie)=
+(
+select count(*)
+from categorie
+where  lower(nume_categorie) like 'c%'
+);
